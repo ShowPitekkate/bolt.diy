@@ -16,7 +16,8 @@ jobs:
         run: |
           nohup pnpm run dev > server.log 2>&1 &
           echo $! > server.pid
-          sleep 5
+          # Wait until server is ready
+          timeout 60 bash -c 'until curl -s http://localhost:3000 >/dev/null; do sleep 1; echo "Waiting for server..."; done'
           cat server.log
           
       - name: Install Ngrok
