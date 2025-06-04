@@ -1,18 +1,36 @@
-name: Run
+name: Public Dev Server
 
-on:
-  push:
+on: workflow_dispatch
 
 jobs:
-  dev:
-    name: Development
+  expose:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup and Build
-        uses: ./.github/actions/setup-and-build
-
-      - name: Run development server
-        run: pnpm run dev
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - run: pnpm install
+      - run: pnpm run dev &
+      
+      - name: Expose with Ngrok
+        uses: https://github.com/marketplace/actions/github-action-for-ngrok
+        with:
+          auth-token: ${{ secrets.NGROK_AUTH_TOKEN }}
+          region: ap # Sesuaikan region (us, eu, ap, au)
+          
+      - run: |
+          ngrok http 3000 > /dev/null &
+          sleep 5
+          curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url' > url.txt
+          
+      - name: Get Public URL
+        run: |
+          echo "Public URL: $(cat url.txt)"
+          echo "url=$(cat url.txt)" >> $GITHUB_OUTPUT
