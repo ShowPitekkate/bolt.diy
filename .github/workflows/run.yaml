@@ -11,8 +11,8 @@ jobs:
 
       - name: Setup and Build
         uses: ./.github/actions/setup-and-build
-      
-       - name: Verify port availability
+        
+      - name: Verify port availability
         run: |
           if nc -z localhost 3000; then
             echo "Port 3000 is already in use"
