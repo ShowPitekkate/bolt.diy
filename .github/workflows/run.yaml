@@ -1,18 +1,29 @@
-name: Runway
+name: Build and Run bolt.diy
 
 on:
   push:
 
 jobs:
-  test:
-    name: Test
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Setup and Build
-        uses: ./.github/actions/setup-and-build
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.21' # Sesuaikan dengan versi Go yang dibutuhkan
 
-      - name: Run
-        run: pnpm run dev
+    - name: Build
+      run: go build -v ./...
+
+    - name: Run tests (optional)
+      run: go test -v ./...
+
+    - name: Run application
+      run: |
+        ./bolt.diy & # Menjalankan aplikasi di background
+        sleep 5 # Memberi waktu untuk aplikasi startup
+        curl http://localhost:8080 # Contoh pengecekan endpoint (sesuaikan portnya)
