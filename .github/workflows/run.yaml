@@ -4,22 +4,19 @@ on:
   push:
 
 jobs:
-  expose:
+  dev:
+    name: Development
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - run: pnpm install
-      - run: pnpm run dev &
-      
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup and Build
+        uses: ./.github/actions/setup-and-build
+
+      - name: Run development server
+        run: pnpm run dev &
+
       - name: Expose with Ngrok
         uses: https://github.com/marketplace/actions/github-action-for-ngrok
         with:
@@ -35,3 +32,4 @@ jobs:
         run: |
           echo "Public URL: $(cat url.txt)"
           echo "url=$(cat url.txt)" >> $GITHUB_OUTPUT
+          
