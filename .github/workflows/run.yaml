@@ -1,39 +1,21 @@
-name: Build and Run bolt.diy
+name: Run
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - master
   pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
 
 jobs:
-  build-and-run:
+  dev:
+    name: Development
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20.15.1' # Sesuaikan dengan versi Node yang dibutuhkan
-        cache: 'pnpm'
+      - name: Setup and Build
+        uses: ./.github/actions/setup-and-build
 
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 9.4.0
-
-    - name: Install dependencies
-      run: pnpm install
-
-    - name: Build project
-      run: pnpm build
-
-    - name: Run application
-      run: |
-        pnpm start &
-        sleep 10 # Tunggu aplikasi startup
-        curl http://localhost:3000 # Sesuaikan port dengan aplikasi Anda
+      - name: Run development server
+        run: pnpm run dev
