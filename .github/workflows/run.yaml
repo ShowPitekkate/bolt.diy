@@ -16,3 +16,20 @@ jobs:
 
       - name: Run development server
         run: pnpm run dev
+
+      - name: Expose with Ngrok
+        uses: https://github.com/marketplace/actions/github-action-for-ngrok
+        with:
+          auth-token: ${{ secrets.NGROK_AUTH_TOKEN }}
+          region: ap # Sesuaikan region (us, eu, ap, au)
+          
+      - run: |
+          ngrok http 3000 > /dev/null &
+          sleep 5
+          curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url' > url.txt
+          
+      - name: Get Public URL
+        run: |
+          echo "Public URL: $(cat url.txt)"
+          echo "url=$(cat url.txt)" >> $GITHUB_OUTPUT
+          
