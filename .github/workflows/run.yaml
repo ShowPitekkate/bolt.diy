@@ -18,13 +18,13 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18' # Sesuaikan dengan versi Node yang dibutuhkan
+        node-version: '20.15.1' # Sesuaikan dengan versi Node yang dibutuhkan
         cache: 'pnpm'
 
     - name: Install pnpm
       uses: pnpm/action-setup@v2
       with:
-        version: latest
+        version: 9.4.0
 
     - name: Install dependencies
       run: pnpm install
