@@ -13,6 +13,8 @@ jobs:
         uses: ./.github/actions/setup-and-build
 
       - name: Start development server with debug
+        env:
+          NGROK: 'true'
         run: |
           # Start server with explicit host and port
           nohup pnpm run dev --host 0.0.0.0 --port 3000 > server.log 2>&1 &
