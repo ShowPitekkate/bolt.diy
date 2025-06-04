@@ -8,13 +8,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Setup and Build
         uses: ./.github/actions/setup-and-build
-        
-      - name: Start development server
+
+      - name: Start development server with debug
         run: |
-           # Start server with explicit host and port
+          # Start server with explicit host and port
           nohup pnpm run dev --host 0.0.0.0 --port 3000 > server.log 2>&1 &
           echo $! > server.pid
           
@@ -43,39 +43,33 @@ jobs:
             echo "::error::Server process is not running"
             exit 1
           fi
-          
+      
       - name: Install Ngrok
         run: |
           curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
           echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
           sudo apt update && sudo apt install ngrok
       
-      - name: Authenticate Ngrok
-        run: ngrok authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
-      
       - name: Create Ngrok tunnel
         run: |
-          ngrok http 3000 > /dev/null &
+          ngrok http 3000 > ngrok.log 2>&1 &
           sleep 5
           curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url' > url.txt
           echo "Public URL: $(cat url.txt)"
+          echo "Ngrok logs:"
+          cat ngrok.log
       
       - name: Set output
         id: ngrok-url
         run: echo "url=$(cat url.txt)" >> $GITHUB_OUTPUT
       
-      - name: Display public URL
-        run: echo "Your app is available at ${{ steps.ngrok-url.outputs.url }}"
-      
-      - name: Keep alive (60 minutes max)
-        run: |
-          for i in {1..60}; do
-            sleep 60
-            echo "Keeping alive... $i minutes passed"
-          done
+      - name: Keep alive (30 minutes max)
+        timeout-minutes: 30
+        run: echo "Server and tunnel are running for 30 minutes"
       
       - name: Cleanup processes
         if: always()
         run: |
           kill $(cat server.pid) 2>/dev/null || true
           pkill ngrok 2>/dev/null || true
+          pkill node 2>/dev/null || true
