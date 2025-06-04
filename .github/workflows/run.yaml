@@ -1,6 +1,7 @@
-name: Public Dev Server
+name: Run Dev
 
-on: workflow_dispatch
+on:
+  push:
 
 jobs:
   expose:
