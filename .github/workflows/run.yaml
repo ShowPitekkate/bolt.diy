@@ -1,7 +1,5 @@
 name: Public Dev Server
 
-name: Public Dev Server
-
 on: workflow_dispatch
 
 jobs:
