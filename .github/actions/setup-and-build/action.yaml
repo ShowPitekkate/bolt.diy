@@ -29,4 +29,3 @@ runs:
       shell: bash
       run: |
         pnpm install
-        pnpm run dev
