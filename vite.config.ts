@@ -72,6 +72,9 @@ const pkg = getPackageJson();
 const gitInfo = getGitInfo();
 
 export default defineConfig((config) => {
+  const isDev = config.mode === 'development';
+  const isNgrok = process.env.NGROK === 'true';
+
   return {
     define: {
       __COMMIT_HASH: JSON.stringify(gitInfo.commitHash),
@@ -91,8 +94,28 @@ export default defineConfig((config) => {
       __PKG_OPTIONAL_DEPENDENCIES: JSON.stringify(pkg.optionalDependencies),
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     },
+    server: {
+      host: isNgrok ? '0.0.0.0' : 'localhost',
+      port: 3000,
+      strictPort: true,
+      hmr: isNgrok ? false : undefined, // Disable HMR when using ngrok
+      allowedHosts: isNgrok ? [
+        '.ngrok-free.app',
+        '.ngrok.io',
+        'localhost'
+      ] : ['localhost'],
+      headers: {
+        'X-Frame-Options': 'DENY',
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        ...(isNgrok ? {
+          'Content-Security-Policy': "default-src 'self' https:; connect-src 'self' https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:;"
+        } : {})
+      }
+    },
     build: {
       target: 'esnext',
+      sourcemap: !isNgrok, // Disable sourcemaps in ngrok mode
     },
     plugins: [
       nodePolyfills({
@@ -114,7 +137,6 @@ export default defineConfig((config) => {
               map: null,
             };
           }
-
           return null;
         },
       },
@@ -138,6 +160,7 @@ export default defineConfig((config) => {
       'OLLAMA_API_BASE_URL',
       'LMSTUDIO_API_BASE_URL',
       'TOGETHER_API_BASE_URL',
+      'NGROK' // Added ngrok environment variable
     ],
     css: {
       preprocessorOptions: {
@@ -164,7 +187,6 @@ function chrome129IssuePlugin() {
             res.end(
               '<body><h1>Please use Chrome Canary for testing.</h1><p>Chrome 129 has an issue with JavaScript modules & Vite local development, see <a href="https://github.com/stackblitz/bolt.new/issues/86#issuecomment-2395519258">for more information.</a></p><p><b>Note:</b> This only impacts <u>local development</u>. `pnpm run build` and `pnpm run start` will work fine in this browser.</p></body>',
             );
-
             return;
           }
         }
